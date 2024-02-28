@@ -14,19 +14,19 @@ Then I would look into how to transfer this possibly large set of data from the 
 - To understand the type of data that needs to be sent I downloaded some free EHR datasets. An example patient can be seen in example_patient.json. The samples I got my hands on are in JSON format. According to FHIR's documentation, FHIR also works well with XML but for the purpose of this assignment I will assume our client can send the data in a JSON format. One of the best ways to store JSON in a scalable way is with MongoDB.
 
 
-The basis of my API design will focus on what appears to be the most commonly used version of FHIR, known as R4 (https://hl7.org/fhir/r4/).
+The basis of my API design will focus on what appears to be the most commonly used version of FHIR, known as R4 (https://hl7.org/fhir/r4/). I will only discuss APIs that would be used for data ingestion from a health care system that already contains many patients.
 
 PUSH API -
 /api/authenticate( userID, timeStamp, personalKey ) 
-/api/create( )
-/api/update( )
-/api/batch( )
+/api/batch( ) // Primary API to begin ingestion.
+/api/update( ) // Used for single periodic updates.
+
 
 - Authentication
   I am not going to dive into this but any API needs security and an authentication method to prevent unwanted access.
 
-- Create
-  This can be used to create a new resource at a given 
+- Batch
+  
 
 
 Q2 - Once the data is pushed, how would you design an automated system to process and ingest that data into CareHarmony's software so that its fully available for internal users?
