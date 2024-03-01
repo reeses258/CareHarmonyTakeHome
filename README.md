@@ -16,8 +16,9 @@ Then I would look into how to transfer this possibly large set of data from the 
 - FHIR's framework has defined an $export operation for bulk transfers. https://build.fhir.org/ig/HL7/bulk-data/export.html
   - This would be the ideal approach but it is more of a "pull" approach that CareHarmony would initiate.
 - If the health system did not implement the export operation I would look break this into two primary steps.
-  1. The health care system would need to generate output file(s) containing all the records needing to be transferred.
-  2. Implement a multipart file upload REST API (or pay for one like Amazon's AWS/S3) to transfer the files to a filesystem within CareHarmony. (See below)
+  1. The health care system would need to generate output file(s) in FHIR format containing all the records needing to be transferred.
+  2. Zip the FHIR (JSON) files to reduce the size.
+  3. Implement a multipart file upload REST API (or pay for one like Amazon's AWS/S3) to transfer the files to a filesystem within CareHarmony. (See below)
 - Once the export files containing the records are copied over, we can move to Q2 to process the data and make it readily available for internal CareHarmony users.
 
 
@@ -35,16 +36,44 @@ An API designed this way has a few advantages. First is that it can do asyncroun
 
 
 
-
-
 Q2 - Once the data is pushed, how would you design an automated system to process and ingest that data into CareHarmony's software so that its fully available for internal users?
 
-Once the data is pushed we will end up a set of very large JSON files using the FHIR content model. Our goal would be to process these files and insert the data contained in them into CareHarmony's database so that they can be queried by internal staff. For the next part I am going to make some assumptions on the layout of CareHarmony's database so that I can code up an example of processing these files. 
+Once the data is pushed we will end up a set of very large JSON files using the FHIR content model. Our goal would be to process these files and insert the data contained in them into CareHarmony's database so that they can be queried by internal staff. For processing these files I would setup a queue based approach that uses a leader and a pool of workers. For this step, I will use the example records I found online. The leader would be a simple script that does the following steps.
+
+
+Leader - 
+1. Scan for new completed pushed files.
+2. View the contents of the zip file.
+3. Add each file inside the zip to the work queue.
+
+Workers -
+1. Grab the first file on the queue.
+2. Using a JSON stream reader parse the json in pieces and add each piece to our mongoDB. 
+
+Note -
+In the example files I have, it is one giant zip with folders inside containing an individual json file for each patient. My design will be based off that. If the health care system provided only a single containing everything, the leader would need to use a stream reader (to avoid running out of memory) and queue up individual blocks of json to the queue. 
+
+
+
+
+
+
+For the next part I am going to make some assumptions on the layout of CareHarmony's database so that I can code up an example of processing these files. 
 
 Database Design -
 
 Patients
-- ID 
+  This database is designed to hold the most basic patient information. The ID can be used across most other database entries to query specific information related to the patient. In a health care system I'm assuming most queries will be either attempting to link a single patient to differnt record types across multiple databases or verify we have a record of the patient based on an unique identifier like Social Security Number (SSN), email or medical record number. The data here is very relational and the size of each entry can be fixed. We could use a relational DB like MySQL. However since we will be using MongoDB to store other records that need to be more flexible, we could put use MongoDB here if it saves on cost. 
+  
+- ID (string or FHIR Identifier type)
+- SSN ( string )
+- Email ( string )
+- Medical Record Number ( string )
+- FirstName ( string )
+- LastName ( string )
+- Telephone ( string )
+
+
 
 The processing steps goal is straight forward, read each file and break it For processing JSON I usually like to use Python as it has some great base functionality for handling JSON. However the downside is the standard library for JSON will attempt to load the entire file in memory at once.  
 
