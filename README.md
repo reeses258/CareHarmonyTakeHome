@@ -39,6 +39,14 @@ An API designed this way has a few advantages. First is that it can do asyncroun
 
 Q2 - Once the data is pushed, how would you design an automated system to process and ingest that data into CareHarmony's software so that its fully available for internal users?
 
+Once the data is pushed we will end up a set of very large JSON files using the FHIR content model. Our goal would be to process these files and insert the data contained in them into CareHarmony's database so that they can be queried by internal staff. For the next part I am going to make some assumptions on the layout of CareHarmony's database so that I can code up an example of processing these files. 
+
+Database Design -
+
+Patients
+- ID 
+
+The processing steps goal is straight forward, read each file and break it For processing JSON I usually like to use Python as it has some great base functionality for handling JSON. However the downside is the standard library for JSON will attempt to load the entire file in memory at once.  
 
 
 However there are claims they do not support all of FHIR's functionality. So an API specific to CareHarmony will likely need to be tailored to speci
