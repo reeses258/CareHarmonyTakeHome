@@ -3,7 +3,11 @@ import json_stream
 import os
 import db
 
+"""
+    Process functions. These simply store each value in a dict allowing for quick look up or handling later.
 
+    These should also be extended to support any FHIR resource extensions.
+"""
 def process_patient(item, path, patient_details):
     patient_details[path[len(path)-1]] = item
 
@@ -132,8 +136,10 @@ async def process_next_file(patientFileName):
         elif g_resource_lookup.get(item, None) != None:
             g_resource_lookup[item](item, path, resource_details)
 
-    #Stream JSON one line at a time. 
-    json_stream.visit(open(patientFileName), visitor)
+    
+    # Ideally this stream would support asyncio. However I discovered it did not too late in the process,
+    # otherwise we could make this entire file async to opitmize it for any slow database transactions. 
+    json_stream.visit(open(patientFileName), visitor) # Stream JSON one line at a time.
 
 
 async def main():
