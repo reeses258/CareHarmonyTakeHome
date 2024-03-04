@@ -5,13 +5,14 @@ Q1 - How would you approach designing an API that the health systems could use t
 I would first approach this by researching the clients to understand how their data is structured.
 
 Since no specific client was specified, I researched what the top EHR systems use. The three largest EHR systems are Epic (38%), Oracle Cerner (22%) and Meditech (13%). All of these support FHIR's common data model. FHIR’s common data model appears to be very robust and extendable. I would say any new system handling EHR and related data should support this framework. FHIR's design can be found on their website but essentially everything is broken into resources and each resource can have any number of extensions.
-Next, I would look into their use cases. The two biggest use cases that come to mind when pushing data to CareHarmony is the initial onboarding and the second is periodic updates as new patients, or records for existing patients are added. The description of the take home problem appears to focus more on the onboarding case, so I will only deep dive into that one.
+
+Next, I would look into their use cases. The two biggest use cases that come to mind when pushing data to CareHarmony is the initial onboarding and the second is periodic updates as new patients, or records for existing patients are added. The description of the take home problem appears to focus more on the onboarding case, so I will only dive into that one.
 In order to move a large set of data from one entity to another, it is best to break the operation down into two steps. First step is to export and prepare the data in a transferable form, and the second is moving it from the sender’s storage to the receiver’s storage. By breaking it into these separate steps we can optimize the each separately.
 In order to handle exporting and preparing the data, I needed to understand the data we will be moving. To do this, I downloaded some free EHR FHIR datasets. An example patient can be seen in example_patient.json. The samples I got my hands on are in JSON format. According to FHIR's documentation, FHIR also works well with XML but for the purpose of this assignment I will focus on JSON.
 
 For preparing the data, FHIR's framework has defined an $export operation for bulk transfers. https://build.fhir.org/ig/HL7/bulk-data/export.html. The simplest approach would be to use a commercial system that supports this operation. If the health care system does not have this support, we would need to implement our own version. 
-To create our own, the first step is saving the data into zipped newline delimited FHIR JSON files. (Similar to FHIR’s export function.)
-Then we would need to Implement a multipart file upload REST API (or pay for one like Amazon's AWS/S3) to transfer the files to a filesystem within CareHarmony. (An example API is below)
+To create our own, the first step is saving the data into zipped newline delimited FHIR JSON files. (Similar to FHIR’s export function.) The difficultly of this would be dependent on the health care system being used. If they use one of the big three above, or another system that already supports FHIR, then this step will be far more simple.
+Then we would need to Implement a multipart file upload REST API (or pay for one like Amazon's AWS/S3) to transfer the files to a filesystem within CareHarmony. (See below for an example design)
 
 - Multi Part File API -
   - int InitiateMultiPartFile( string filename, int numParts )
